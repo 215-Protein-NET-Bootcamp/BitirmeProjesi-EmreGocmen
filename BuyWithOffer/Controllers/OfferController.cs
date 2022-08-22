@@ -110,9 +110,9 @@ namespace BuyWithOffer
             return result;
         }
 
-        [HttpPut("BuyProduct")]
+        [HttpPut("BuyProductWihoutOffer")]
         [Authorize]
-        public async Task<ApplicationResponse> BuyProduct(int productId)
+        public async Task<ApplicationResponse> BuyProductWihoutOffer(int productId)
         {
             Log.Information($"{User.Identity?.Name}: to buy a product without offer creates new sale to sale table on database with id is {productId}");
             var user = await GetCurrentUserAsync();

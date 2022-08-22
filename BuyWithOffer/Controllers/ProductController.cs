@@ -65,7 +65,7 @@ namespace BuyWithOffer
 
         [HttpGet("GetByUser")]
         [Authorize]
-        public async Task<ActionResult<ApplicationResponse<List<ProductDto>>>> GetByUser()
+        public async Task<ActionResult<ApplicationResponse<List<ProductDto>>>> GetByActiveUser()
         {
             Log.Information($"{User.Identity?.Name}: get products which are belong active user");
             var user = await GetCurrentUserAsync();
@@ -154,25 +154,29 @@ namespace BuyWithOffer
 
         [HttpPost("AddImage")]
         [Authorize]
-        public async Task<ActionResult<ApplicationResponse>> AddImage([FromForm(Name = "image")] FileUpload file, int productId)
+        public async Task<ApplicationResponse> AddImage([FromForm] FileUpload file, int productId)
         {
+            var result = new ApplicationResponse();
+            var tempImage = file.image;
             Log.Information($"{User.Identity?.Name}: add image to product with id is {productId}");
-            var image = productService.GetBytes(file.image).Result;
-            var user = await GetCurrentUserAsync();
-            var result = await productService.AddImage(image, productId, user);
-            if (result.Succeeded)
-                return result;
-            return NotFound(result);
+            using (var memoryStream = new MemoryStream())
+            {
+                tempImage.CopyTo(memoryStream);
+                var byteImage = memoryStream.ToArray();
+                var user = await GetCurrentUserAsync();
+                result = await productService.AddImage(byteImage, productId, user);
+            }
+            return result;
         }
 
 
         [HttpPut("DeleteImage")]
         [Authorize]
-        public async Task<ApplicationResponse> DeleteImage(int imageId)
+        public async Task<ApplicationResponse> DeleteImage(int productId)
         {
-            Log.Information($"{User.Identity?.Name}: delete image from product with image id is {imageId}");
+            Log.Information($"{User.Identity?.Name}: delete image from product with image id is {productId}");
             var user = await GetCurrentUserAsync();
-            var result = await productService.DeleteImage(imageId, user);
+            var result = await productService.DeleteImage(productId, user);
             return result;
         }
         

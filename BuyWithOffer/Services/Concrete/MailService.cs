@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -146,5 +149,33 @@ namespace BuyWithOffer
                 return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
             }
         }
+
+
+        // 5  defa denenip status u failed olarak guncellenen mailleri tekrar gondermeyi dener.
+        public async Task<ApplicationResponse> sendFailedMails()
+        {
+            List<Email> failedMails = await context.Email.Where(x => x.Status == "Failed").ToListAsync();
+
+            try
+            {
+                foreach(Email mail in failedMails)
+                {
+                    // failed mailler tekrar gonderilmeden once tryCount degerleri sifirlanir.
+                    // bu sayede 5 kere daha denenir.
+                    mail.tryCount = 0;
+                    context.Update(mail);
+                    await UnitOfWork.CompleteAsync();
+                    await sendMail(mail);
+                }
+                return new ApplicationResponse { Succeeded = true };
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
+            }
+
+
         }
+
+    }
 }

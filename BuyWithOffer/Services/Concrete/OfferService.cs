@@ -56,18 +56,27 @@ namespace BuyWithOffer
             try
             {
                 Offer willDelete = await context.Offers.FindAsync(Id);
-                if (willDelete != null)
+                if (willDelete.CreatedBy == applicationUser.UserName)
                 {
-                    context.Offers.Remove(willDelete);
-                    await context.SaveChangesAsync();
+                    if (willDelete != null)
+                    {
+                        context.Offers.Remove(willDelete);
+                        await context.SaveChangesAsync();
 
-                    return new ApplicationResponse { Succeeded = true };
+                        return new ApplicationResponse { Succeeded = true };
+                    }
+                    else
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Kayit bulunamadi" };
+
+                    }
                 }
                 else
                 {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "Record not found. Try Again." };
+                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "Silmek istediginiz teklif size ait degil" };
 
                 }
+
             }
             catch (Exception ex)
             {
@@ -202,20 +211,32 @@ namespace BuyWithOffer
         {
             try
             {
-                Offer getExistCategory = await context.Offers.FindAsync(input.OfferId);
-                getExistCategory.ProductId = input.ProductId;
-                getExistCategory.Amount = input.Amount;
-                getExistCategory.ModifiedBy = applicationUser.UserName;
-                getExistCategory.ModifiedById = applicationUser.Id;
-                getExistCategory.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistCategory);
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse
+                Offer getExistOffer = await context.Offers.FindAsync(input.OfferId);
+                // teklifin sahibiyle aktif kullanicinin eslestigi kontrol edilir.
+                if (getExistOffer.CreatedBy == applicationUser.UserName)
                 {
-                    Succeeded = true,
-                };
+                    getExistOffer.ProductId = input.ProductId;
+                    getExistOffer.Amount = input.Amount;
+                    getExistOffer.ModifiedBy = applicationUser.UserName;
+                    getExistOffer.ModifiedById = applicationUser.Id;
+                    getExistOffer.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistOffer);
+                    await context.SaveChangesAsync();
+
+                    return new ApplicationResponse
+                    {
+                        Succeeded = true,
+                    };
+                }
+                else
+                {
+                    return new ApplicationResponse
+                    {
+                        Succeeded = false,
+                        ErrorMessage = "Guncellemek istediginiz teklif size ait degil."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -228,16 +249,31 @@ namespace BuyWithOffer
         {
             try
             {
-                Offer getExistCategory = await context.Offers.FindAsync(offerId);
-                getExistCategory.isConfirmed = true;
-
-                context.Update(getExistCategory);
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse
+                Offer getExistOffer = await context.Offers.FindAsync(offerId);
+                Product getExistProduct = await context.Products.Where(x => x.ProductId == getExistOffer.ProductId).FirstOrDefaultAsync();
+                
+                // urunun sahibiyle aktif kullanicinin eslestigi kontrol edilir.
+                if(getExistProduct.CreatedBy == applicationUser.UserName)
                 {
-                    Succeeded = true,
-                };
+                    getExistOffer.isConfirmed = true;
+
+                    context.Update(getExistOffer);
+                    await context.SaveChangesAsync();
+
+                    return new ApplicationResponse
+                    {
+                        Succeeded = true,
+                    };
+                }
+                else
+                {
+                    return new ApplicationResponse
+                    {
+                        Succeeded = false,
+                        ErrorMessage = "Onaylamak istediginiz teklif sizin urununuze ait degil."
+                    };
+                }
+
             }
             catch (Exception ex)
             {
@@ -263,13 +299,13 @@ namespace BuyWithOffer
                 newOffer.isConfirmed = false;
                 newOffer.isActive = true;
 
-                if (offer.Amount != null)
+                if (offer.Amount != 0)
                 {
                     newOffer.Amount = offer.Amount;
                 }
-                else if (offer.Percentage != null)
+                else if (offer.Percentage != 0)
                 {
-                    newOffer.Amount = product.Price * offer.Percentage;
+                    newOffer.Amount = product.Price * offer.Percentage /100;
                 }
                 else
                 {
@@ -292,27 +328,40 @@ namespace BuyWithOffer
             try
             {
                 Offer getExistOffer = await context.Offers.FindAsync(offerId);
-                getExistOffer.isActive = false;
-
-                context.Update(getExistOffer);
-                await context.SaveChangesAsync();
-
-                //teklifi iptal eden kullanici teklifi yapan kullaniciyla ayni mi kontrol edilir
-                //degilse teklifi olusturan kullanici bilgilendirilir.
-                if (applicationUser.Email != getExistOffer.CreatedBy)
+                // teklifin sahibiyle aktif kullanicinin eslestigi kontrol edilir.
+                if (getExistOffer.CreatedBy == applicationUser.UserName)
                 {
-                    Product getExistProduct = await context.Products.FindAsync(getExistOffer.ProductId);
-                    var toEmail = getExistProduct.CreatedBy;
+                    getExistOffer.isActive = false;
 
-                    var tempMail = mailService.createOfferSoldMail(toEmail).Result;
-                    Email toSendMail = tempMail.Result;
-                    await mailService.sendMail(toSendMail);
+                    context.Update(getExistOffer);
+                    await context.SaveChangesAsync();
+
+                    //teklifi iptal eden kullanici teklifi yapan kullaniciyla ayni mi kontrol edilir
+                    //degilse teklifi olusturan kullanici bilgilendirilir.
+                    if (applicationUser.UserName != getExistOffer.CreatedBy)
+                    {
+                        Product getExistProduct = await context.Products.FindAsync(getExistOffer.ProductId);
+                        var toEmail = getExistProduct.CreatedBy;
+
+                        var tempMail = mailService.createOfferSoldMail(toEmail).Result;
+                        Email toSendMail = tempMail.Result;
+                        await mailService.sendMail(toSendMail);
+                    }
+
+                    return new ApplicationResponse
+                    {
+                        Succeeded = true
+                    };
+                }
+                else
+                {
+                    return new ApplicationResponse
+                    {
+                        Succeeded = false,
+                        ErrorMessage = "Iptal etmek istediginiz teklif size ait degil."
+                    };
                 }
 
-                return new ApplicationResponse
-                {
-                    Succeeded = true
-                };
             }
             catch (Exception ex)
             {
@@ -325,59 +374,71 @@ namespace BuyWithOffer
             try
             {
                 Offer getExistOffer = await context.Offers.FindAsync(offerId);
-                if (getExistOffer == null)
+                // teklifin sahibiyle aktif kullanicinin eslestigi kontrol edilir.
+                if (getExistOffer.CreatedBy == applicationUser.UserName)
                 {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Post Found !" };
+                    if (getExistOffer == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Teklif bulunamadi" };
+                    }
+                    if (getExistOffer.isConfirmed == false)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Bu teklif henuz onaylanmadi" };
+                    }
+
+                    // offer artik aktif degil
+                    getExistOffer.isActive = false;
+                    getExistOffer.ModifiedBy = applicationUser.UserName;
+                    getExistOffer.ModifiedById = applicationUser.Id;
+                    getExistOffer.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistOffer);
+
+                    //urun durumu satildi olarak guncellenir
+                    Product getExistProduct = context.Products.Where(x => x.ProductId == getExistOffer.ProductId).FirstOrDefault();
+                    getExistProduct.isSold = true;
+                    getExistProduct.isOfferable = false;
+
+                    context.Update(getExistProduct);
+
+                    //satis satis tablosuna kaydedilir.
+                    Sale newSale = new Sale();
+                    newSale.CreatedBy = applicationUser.UserName;
+                    newSale.CreatedById = applicationUser.Id;
+                    newSale.CreatedDate = DateTime.UtcNow;
+                    newSale.Amount = getExistOffer.Amount;
+                    newSale.ProductId = getExistProduct.ProductId;
+
+                    await context.Sales.AddAsync(newSale);
+
+                    await context.SaveChangesAsync();
+
+                    // teklifin aktifligi dusup satis onaylaninca urun koduna ait diger teklifler de iptal edilir.
+                    List<Offer> offerList = context.Offers.Where(x => x.ProductId == getExistOffer.ProductId).ToList();
+
+                    // cancelOffer methodu satilan urune teklif vermis kullanicilara tekliflerinin artik aktif olmadigi
+                    // konusunda bir mail gonderir
+                    foreach (Offer offer in offerList)
+                    {
+                        await CancelOffer(offer.OfferId, applicationUser);
+                    }
+
+                    //urun sahibine urununuz satildi maili
+                    var ownerOfProduct = getExistProduct.CreatedBy;
+                    // maili database e kaydeder
+                    var tempMail = mailService.createSaleMail(ownerOfProduct).Result;
+                    Email toSendMail = tempMail.Result;
+                    // bu method databasedeki maili smtp kullanarak gonderir
+                    await mailService.sendMail(toSendMail);
+
+                    return new ApplicationResponse { Succeeded = true };
                 }
-                if (getExistOffer.isConfirmed == false)
+                else
                 {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "This offer is not confirmed yet !" };
+                    return new ApplicationResponse { Succeeded = false,
+                        ErrorMessage = "Satin almak istediginiz teklif size ait degil." };
                 }
-
-                // offer artik aktif degil
-                getExistOffer.isActive = false;
-                getExistOffer.ModifiedBy = applicationUser.UserName;
-                getExistOffer.ModifiedById = applicationUser.Id;
-                getExistOffer.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistOffer);
-
-                //urun durumu satildi olarak guncellenir
-                Product getExistProduct = context.Products.Where(x => x.ProductId == getExistOffer.ProductId).FirstOrDefault(); 
-                getExistProduct.isSold = true;
-                getExistProduct.isOfferable = false;
-
-                context.Update(getExistProduct);
-
-                //satis satis tablosuna kaydedilir.
-                Sale newSale = new Sale();
-                newSale.CreatedBy = applicationUser.UserName;
-                newSale.CreatedById = applicationUser.Id;
-                newSale.CreatedDate = DateTime.UtcNow;
-                newSale.Amount = getExistOffer.Amount;
-                newSale.ProductId = getExistProduct.ProductId;
-
-                await context.Sales.AddAsync(newSale);
-
-                await context.SaveChangesAsync();
-
-                // teklifin aktifligi dusup satis onaylaninca urun koduna ait diger teklifler de iptal edilir.
-                List<Offer> offerList = context.Offers.Where(x => x.ProductId == getExistOffer.ProductId).ToList();
-
-                // cancelOffer methodu satilan urune teklif vermis kullanicilara tekliflerinin artik aktif olmadigi
-                // konusunda bir mail gonderir
-                foreach (Offer offer in offerList)
-                {
-                    await CancelOffer(offer.OfferId, applicationUser);
-                }
-
-                //urun sahibine urununuz satildi maili
-                var ownerOfProduct = getExistProduct.CreatedBy;
-                var tempMail = mailService.createSaleMail(ownerOfProduct).Result;
-                Email toSendMail = tempMail.Result;
-                await mailService.sendMail(toSendMail);
-
-                return new ApplicationResponse { Succeeded = true };
+                
             }
             catch (Exception ex)
             {
@@ -417,7 +478,8 @@ namespace BuyWithOffer
 
                 List<Offer> offerList = context.Offers.Where(x => x.ProductId == productId).ToList();
 
-                //urun satin alindiginda o urune yapilmis teklifler iptal edilir.
+                // urun satin alindiginda o urune yapilmis teklifler iptal edilir.
+                // cancel offer methodu icinde teklif vermis ve teklifi iptal olmus kullanicilar mail yolu ile bilgilendirilir.
                 foreach (Offer offer in offerList)
                 {
                     await CancelOffer(offer.OfferId, applicationUser);

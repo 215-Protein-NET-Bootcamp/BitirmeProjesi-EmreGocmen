@@ -42,18 +42,29 @@ namespace BuyWithOffer
             try
             {
                 Category willDelete = await context.Categories.FindAsync(Id);
-                if (willDelete != null)
+                // kategoriyi olusturan kullanici ile aktif kullanicinin eslestigi kontrol edilir.
+                if (willDelete.CreatedBy == applicationUser.UserName)
                 {
-                    context.Categories.Remove(willDelete);
-                    await UnitOfWork.CompleteAsync();
+                    if (willDelete != null)
+                    {
+                        context.Categories.Remove(willDelete);
+                        await UnitOfWork.CompleteAsync();
 
-                    return new ApplicationResponse { Succeeded = true };
+                        return new ApplicationResponse { Succeeded = true };
+                    }
+                    else
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Kayit bulunamadi." };
+
+                    }
                 }
                 else
                 {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "Record not found. Try Again." };
+                    return new ApplicationResponse { Succeeded = false,
+                        ErrorMessage = "Silmek istediginiz kategory sizin tarafinizdan olusturulmadi" };
 
                 }
+
             }
             catch (Exception ex)
             {
@@ -109,7 +120,6 @@ namespace BuyWithOffer
                     categoryDto.ModifiedDate = category.ModifiedDate;
                     list.Add(categoryDto);
                 }
-
                 return new ApplicationResponse<List<CategoryDto>>
                 {
                     Result = list,
@@ -128,18 +138,35 @@ namespace BuyWithOffer
             try
             {
                 Category getExistCategory = await context.Categories.FindAsync(input.CategoryId);
-                getExistCategory.CategoryName = input.Category;
-                getExistCategory.ModifiedBy = applicationUser.UserName;
-                getExistCategory.ModifiedById = applicationUser.Id;
-                getExistCategory.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistCategory);
-                await UnitOfWork.CompleteAsync();
-
-                return new ApplicationResponse
+                // kategoriyi olusturan kullanici ile aktif kullanicinin eslestigi kontrol edilir.
+                if (getExistCategory.CreatedBy == applicationUser.UserName)
                 {
-                    Succeeded = true,
-                };
+                    if (getExistCategory != null)
+                    {
+                        getExistCategory.CategoryName = input.Category;
+                        getExistCategory.ModifiedBy = applicationUser.UserName;
+                        getExistCategory.ModifiedById = applicationUser.Id;
+                        getExistCategory.ModifiedDate = DateTime.UtcNow;
+
+                        context.Update(getExistCategory);
+                        await UnitOfWork.CompleteAsync();
+
+                        return new ApplicationResponse
+                        { Succeeded = true };
+                    }
+                    else
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Kayit bulunamadi." };
+
+                    }
+
+                }
+                else
+                {
+                    return new ApplicationResponse { Succeeded = false,
+                        ErrorMessage = "Guncellemek istediginiz kategori sizin tarafinizdan olusturulmadi" };
+                }
+
             }
             catch (Exception ex)
             {

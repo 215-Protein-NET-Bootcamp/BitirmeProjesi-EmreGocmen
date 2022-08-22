@@ -28,15 +28,7 @@ namespace BuyWithOffer
             {
                 Product product = await context.Products.Where(x => x.ProductId == id).FirstOrDefaultAsync();
                 ProductDto productDto = new ProductDto();
-                if(product.hasPhoto != true)
-                {
-                    //default product image
-                    productDto.Image = new byte[20];
-                }
-                else
-                {
-                    productDto.Image = GetImage(product.PhotoId);
-                }
+
                 productDto.ProductId = product.ProductId;
                 productDto.ProductName = product.ProductName;
                 productDto.Explanation = product.Explanation;
@@ -44,7 +36,7 @@ namespace BuyWithOffer
                 productDto.Color = GetColorName(product.ColorId);
                 productDto.Brand = GetBrandName(product.BrandId);
                 productDto.UsageStatus = GetUsageStatus(product.UsageStatusId);
-                
+                productDto.Image = GetImage(product);
                 productDto.Price = product.Price;
                 productDto.isOfferable = product.isOfferable;
                 productDto.isSold = product.isSold;
@@ -69,15 +61,6 @@ namespace BuyWithOffer
                 foreach (var product in listRaw)
                 {
                     ProductDto productDto = new ProductDto();
-                    if (product.hasPhoto != true)
-                    {
-                        //default product image
-                        productDto.Image = new byte[20];
-                    }
-                    else
-                    {
-                        productDto.Image = GetImage(product.PhotoId);
-                    }
                     productDto.ProductId = product.ProductId;
                     productDto.ProductName = product.ProductName;
                     productDto.Explanation = product.Explanation;
@@ -85,7 +68,7 @@ namespace BuyWithOffer
                     productDto.Color = GetColorName(product.ColorId);
                     productDto.Brand = GetBrandName(product.BrandId);
                     productDto.UsageStatus = GetUsageStatus(product.UsageStatusId);
-                    productDto.Image = new byte[20];
+                    productDto.Image = GetImage(product);
                     productDto.Price = product.Price;
                     productDto.isOfferable = product.isOfferable;
                     productDto.isSold = product.isSold;
@@ -120,15 +103,6 @@ namespace BuyWithOffer
                 foreach (var product in listRaw)
                 {
                     ProductDto productDto = new ProductDto();
-                    if (product.hasPhoto != true)
-                    {
-                        //default product image
-                        productDto.Image = new byte[20];
-                    }
-                    else
-                    {
-                        productDto.Image = GetImage(product.PhotoId);
-                    }
                     productDto.ProductId = product.ProductId;
                     productDto.ProductName = product.ProductName;
                     productDto.Explanation = product.Explanation;
@@ -136,7 +110,7 @@ namespace BuyWithOffer
                     productDto.Color = GetColorName(product.ColorId);
                     productDto.Brand = GetBrandName(product.BrandId);
                     productDto.UsageStatus = GetUsageStatus(product.UsageStatusId);
-                    productDto.Image = new byte[20];
+                    productDto.Image = GetImage(product);
                     productDto.Price = product.Price;
                     productDto.isOfferable = product.isOfferable;
                     productDto.isSold = product.isSold;
@@ -171,15 +145,6 @@ namespace BuyWithOffer
                 foreach (var product in listRaw)
                 {
                     ProductDto productDto = new ProductDto();
-                    if (product.hasPhoto != true)
-                    {
-                        //default product image
-                        productDto.Image = new byte[20];
-                    }
-                    else
-                    {
-                        productDto.Image = GetImage(product.PhotoId);
-                    }
                     productDto.ProductId = product.ProductId;
                     productDto.ProductName = product.ProductName;
                     productDto.Explanation = product.Explanation;
@@ -187,7 +152,7 @@ namespace BuyWithOffer
                     productDto.Color = GetColorName(product.ColorId);
                     productDto.Brand = GetBrandName(product.BrandId);
                     productDto.UsageStatus = GetUsageStatus(product.UsageStatusId);
-                    productDto.Image = new byte[20];
+                    productDto.Image = GetImage(product);
                     productDto.Price = product.Price;
                     productDto.isOfferable = product.isOfferable;
                     productDto.isSold = product.isSold;
@@ -222,15 +187,6 @@ namespace BuyWithOffer
                 foreach (var product in listRaw)
                 {
                     ProductDto productDto = new ProductDto();
-                    if (product.hasPhoto != true)
-                    {
-                        //default product image
-                        productDto.Image = new byte[20];
-                    }
-                    else
-                    {
-                        productDto.Image = GetImage(product.PhotoId);
-                    }
                     productDto.ProductId = product.ProductId;
                     productDto.ProductName = product.ProductName;
                     productDto.Explanation = product.Explanation;
@@ -238,7 +194,7 @@ namespace BuyWithOffer
                     productDto.Color = GetColorName(product.ColorId);
                     productDto.Brand = GetBrandName(product.BrandId);
                     productDto.UsageStatus = GetUsageStatus(product.UsageStatusId);
-                    productDto.Image = new byte[20];
+                    productDto.Image = GetImage(product);
                     productDto.Price = product.Price;
                     productDto.isOfferable = product.isOfferable;
                     productDto.isSold = product.isSold;
@@ -264,115 +220,6 @@ namespace BuyWithOffer
             }
         }
 
-        public async Task<ApplicationResponse> Create(CreateProductDto input, User applicationUser)
-        {
-            try
-            {
-                Product newProduct = new Product();
-
-                newProduct.ProductName = input.ProductName;
-                newProduct.Explanation = input.Explanation;
-                newProduct.CategoryId = GetCategoryId(input.Category);
-                newProduct.ColorId = GetColorId(input.Color);
-                newProduct.BrandId = GetBrandId(input.Brand);
-                newProduct.UsageStatusId = GetUsageStatusId(input.UsageStatus);
-                newProduct.CreatedBy = applicationUser.UserName;
-                newProduct.CreatedById = applicationUser.Id;
-                newProduct.CreatedDate = DateTime.Now;
-
-                await context.Products.AddAsync(newProduct);
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse { Succeeded = true };
-            }
-            catch (Exception ex)
-            {
-                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
-            }
-        }
-
-        public async Task<ApplicationResponse> Delete(int id, User applicationUser)
-        {
-            try
-            {
-                Product willDeletePost = await context.Products.FindAsync(id);
-                if (willDeletePost != null)
-                {
-                    context.Products.Remove(willDeletePost);
-                    await context.SaveChangesAsync();
-
-                    return new ApplicationResponse { Succeeded = true };
-                }
-                else
-                {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "Record not found. Try Again." };
-
-                }
-            }
-            catch (Exception ex)
-            {
-                return new ApplicationResponse { ErrorMessage = ex.Message, Succeeded = false };
-            }
-        }
-
-        public async Task<ApplicationResponse> Update(UpdateProductDto input, User applicationUser)
-        {
-            try
-            {
-                Product existProduct = await context.Products.FindAsync(input.ProductId);
-                if (existProduct == null)
-                {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Post Found !" };
-                }
-
-                existProduct.ProductName = input.ProductName;
-                existProduct.Explanation = input.Explanation;
-                existProduct.CategoryId = GetCategoryId(input.Category);
-                existProduct.ColorId = GetColorId(input.Color);
-                existProduct.BrandId = GetBrandId(input.Brand);
-                existProduct.UsageStatusId = GetUsageStatusId(input.UsageStatus);
-                existProduct.ModifiedBy = applicationUser.UserName;
-                existProduct.ModifiedById = applicationUser.Id;
-                existProduct.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(existProduct);
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse { Succeeded = true };
-            }
-            catch (Exception ex)
-            {
-                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
-            }
-        }
-
-        public async Task<ApplicationResponse> OpenToOffer(int productId, User applicationUser)
-        {
-            try
-            {
-                Product getExistPost = await context.Products.FindAsync(productId);
-                if (getExistPost == null)
-                {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Post Found !" };
-                }
-
-                getExistPost.isOfferable = true;
-                getExistPost.ModifiedBy = applicationUser.UserName;
-                getExistPost.ModifiedById = applicationUser.Id;
-                getExistPost.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistPost);
-
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse { Succeeded = true };
-            }
-            catch (Exception ex)
-            {
-                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
-            }
-        }
-
         public async Task<ApplicationResponse<List<ProductDto>>> GetByCat(string categoryName)
         {
             try
@@ -381,7 +228,7 @@ namespace BuyWithOffer
                 if (category != null)
                 {
                     List<Product> listRaw = await context.Products.Where(p => p.CategoryId == category.CategoryId).ToListAsync();
-                    
+
                     if (listRaw != null)
                     {
                         List<ProductDto> list = new List<ProductDto>();
@@ -395,7 +242,7 @@ namespace BuyWithOffer
                             productDto.Color = GetColorName(product.ColorId);
                             productDto.Brand = GetBrandName(product.BrandId);
                             productDto.UsageStatus = GetUsageStatus(product.UsageStatusId);
-                            productDto.Image = new byte[20];
+                            productDto.Image = GetImage(product);
                             productDto.Price = product.Price;
                             productDto.isOfferable = product.isOfferable;
                             productDto.isSold = product.isSold;
@@ -425,11 +272,270 @@ namespace BuyWithOffer
 
         }
 
+        public async Task<ApplicationResponse<List<Sale>>> GetAllSales()
+        {
+            try
+            {
+                List<Sale> listRaw = await context.Sales.ToListAsync();
+
+                return new ApplicationResponse<List<Sale>>
+                {
+                    Succeeded = true,
+                    Result = listRaw
+                };
+            }
+            catch (Exception e)
+            {
+                return new ApplicationResponse<List<Sale>> { ErrorMessage = e.Message, Succeeded = false };
+            }
+        }
+
+        public async Task<ApplicationResponse> Create(CreateProductDto input, User applicationUser)
+        {
+            try
+            {
+                Product newProduct = new Product();
+
+                newProduct.ProductName = input.ProductName;
+                newProduct.Explanation = input.Explanation;
+                newProduct.CategoryId = GetCategoryId(input.Category);
+                newProduct.ColorId = GetColorId(input.Color);
+                newProduct.BrandId = GetBrandId(input.Brand);
+                newProduct.UsageStatusId = GetUsageStatusId(input.UsageStatus);
+                newProduct.Price = input.Price;
+                newProduct.CreatedBy = applicationUser.UserName;
+                newProduct.CreatedById = applicationUser.Id;
+                newProduct.CreatedDate = DateTime.Now;
+
+                await context.Products.AddAsync(newProduct);
+                await context.SaveChangesAsync();
+
+                return new ApplicationResponse { Succeeded = true };
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
+            }
+        }
+
+        public async Task<ApplicationResponse> Delete(int id, User applicationUser)
+        {
+            try
+            {
+                Product willDeleteProduct = await context.Products.FindAsync(id);
+                // urun sahibi ile aktif kullanicinin eslestigi kontrol edilir
+                if(willDeleteProduct.CreatedBy == applicationUser.UserName)
+                {
+                    if (willDeleteProduct != null)
+                    {
+                        context.Products.Remove(willDeleteProduct);
+                        await context.SaveChangesAsync();
+
+                        return new ApplicationResponse { Succeeded = true };
+                    }
+                    else
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun bulunamadi" };
+
+                    }
+                }
+                else
+                {
+                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "Silmek istediginiz urun size ait degil" };
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { ErrorMessage = ex.Message, Succeeded = false };
+            }
+        }
+
+        public async Task<ApplicationResponse> Update(UpdateProductDto input, User applicationUser)
+        {
+            try
+            {
+                Product getExistProduct = await context.Products.FindAsync(input.ProductId);
+                // urun sahibi ile aktif kullanicinin eslestigi kontrol edilir
+                if (getExistProduct.CreatedBy == applicationUser.UserName)
+                {
+                    if (getExistProduct == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun bulunamadi" };
+                    }
+
+                    getExistProduct.ProductName = input.ProductName;
+                    getExistProduct.Explanation = input.Explanation;
+                    getExistProduct.CategoryId = GetCategoryId(input.Category);
+                    getExistProduct.ColorId = GetColorId(input.Color);
+                    getExistProduct.BrandId = GetBrandId(input.Brand);
+                    getExistProduct.UsageStatusId = GetUsageStatusId(input.UsageStatus);
+                    getExistProduct.ModifiedBy = applicationUser.UserName;
+                    getExistProduct.ModifiedById = applicationUser.Id;
+                    getExistProduct.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistProduct);
+                    await context.SaveChangesAsync();
+
+                    return new ApplicationResponse { Succeeded = true };
+                }
+                else
+                {
+                    return new ApplicationResponse { Succeeded = false,
+                        ErrorMessage = "Guncellemek istediniz urun size ait degil" };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
+            }
+        }
+
+        public async Task<ApplicationResponse> AddImage(byte[] image, int productId, User applicationUser)
+        {
+            try
+            {
+                Product getExistProduct = await context.Products.FindAsync(productId);
+                // urun sahibi ile aktif kullanicinin eslestigi kontrol edilir
+                if (getExistProduct.CreatedBy == applicationUser.UserName)
+                {
+                    if (getExistProduct == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun bulunamadi" };
+                    }
+
+                    // kullanici profil fotografi olusturulur.
+                    Photo newImage = new Photo();
+                    newImage.CreatedBy = applicationUser.UserName;
+                    newImage.CreatedById = applicationUser.Id;
+                    newImage.CreatedDate = DateTime.UtcNow;
+                    newImage.ProductId = productId;
+                    newImage.Image = image;
+                    await context.Photos.AddAsync(newImage);
+                    await context.SaveChangesAsync();
+
+                    // olusturulan urun resminin id si urun tablosuna guncellenir. hasPhoto degeri true olarak guncellenir.
+                    Photo userPhoto = await context.Photos.Where(x => x.ProductId == productId).FirstAsync();
+                    getExistProduct.PhotoId = userPhoto.Id;
+                    getExistProduct.hasPhoto = true;
+                    getExistProduct.ModifiedBy = applicationUser.UserName;
+                    getExistProduct.ModifiedById = applicationUser.Id;
+                    getExistProduct.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistProduct);
+
+                    await context.SaveChangesAsync();
+
+                    return new ApplicationResponse { Succeeded = true };
+                }
+                else
+                {
+                    return new ApplicationResponse { Succeeded = false,
+                        ErrorMessage = "Guncellemek istediginiz urun size ait degil" };
+                }
+                    
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
+            }
+        }
+
+        public async Task<ApplicationResponse> DeleteImage(int productId, User applicationUser)
+        {
+            try
+            {
+                Product getExistProduct = await context.Products.FindAsync(productId);
+                // urun sahibi ile aktif kullanicinin eslestigi kontrol edilir
+                if (getExistProduct.CreatedBy == applicationUser.UserName)
+                {
+                    if (getExistProduct == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun bulunamadi" };
+                    }
+
+                    var imageId = context.Products.Where(x => x.ProductId == productId).FirstOrDefault().PhotoId;
+                    // silinecek olan kullanici profil fotografi database den alinir.
+                    Photo willDeleteImage = context.Photos.Where(x => x.Id == imageId).FirstOrDefault();
+                    if (willDeleteImage == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun resmi bulunamadi" };
+                    }
+                    context.Photos.Remove(willDeleteImage);
+                    await context.SaveChangesAsync();
+
+                    // silinen urun resminin product tablosundaki karsiligi guncellenir.
+                    getExistProduct.PhotoId = 0;
+                    getExistProduct.hasPhoto = false;
+                    getExistProduct.ModifiedBy = applicationUser.UserName;
+                    getExistProduct.ModifiedById = applicationUser.Id;
+                    getExistProduct.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistProduct);
+                    await context.SaveChangesAsync();
+
+                    return new ApplicationResponse { Succeeded = true };
+                }
+                else
+                {
+                    return new ApplicationResponse
+                    {
+                        Succeeded = false,
+                        ErrorMessage = "Guncellemek istediginiz urun size ait degil"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
+            }
+        }
+
+        public async Task<ApplicationResponse> OpenToOffer(int productId, User applicationUser)
+        {
+            try
+            {
+                Product getExistProduct = await context.Products.FindAsync(productId);
+                // urun sahibi ile aktif kullanicinin eslestigi kontrol edilir
+                if (getExistProduct.CreatedBy == applicationUser.UserName)
+                {
+                    if (getExistProduct == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun bulunamadi" };
+                    }
+
+                    getExistProduct.isOfferable = true;
+                    getExistProduct.ModifiedBy = applicationUser.UserName;
+                    getExistProduct.ModifiedById = applicationUser.Id;
+                    getExistProduct.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistProduct);
+
+                    await context.SaveChangesAsync();
+
+                    return new ApplicationResponse { Succeeded = true };
+                }
+                else
+                {
+                    return new ApplicationResponse
+                    {
+                        Succeeded = false,
+                        ErrorMessage = "Guncellemek istediginiz urun size ait degil"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
+            }
+        }
+
+
         //from memory cache
+        string cacheKey = "default";
+
         private string GetCategoryName(int CategoryId)
         {
-            //yeni kategoru eklendiginde toplam sayi degisecegi bu sayede cache bozulacagi icin count methodu kullanilmistir.
-            string cacheKey = context.Categories.Count().ToString();
             if (!memoryCache.TryGetValue(cacheKey, out List<Category> casheList))
             {
                 List<Category> categoryList = new List<Category>();
@@ -441,7 +547,7 @@ namespace BuyWithOffer
 
                 var cacheExpOptions = new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpiration = DateTime.Now.AddDays(30),
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
                     Priority = CacheItemPriority.Normal
                 };
                 memoryCache.Set(cacheKey, categoryList, cacheExpOptions);
@@ -451,7 +557,6 @@ namespace BuyWithOffer
         }
 
         //from memory cache
-        string cacheKey = "default";
         private string GetColorName(int ColorId)
         {
             if (!memoryCache.TryGetValue(cacheKey, out List<Color> casheList))
@@ -465,7 +570,7 @@ namespace BuyWithOffer
 
                 var cacheExpOptions = new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpiration = DateTime.Now.AddDays(30),
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
                     Priority = CacheItemPriority.Normal
                 };
                 memoryCache.Set(cacheKey, colorList, cacheExpOptions);
@@ -488,7 +593,7 @@ namespace BuyWithOffer
 
                 var cacheExpOptions = new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpiration = DateTime.Now.AddDays(30),
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
                     Priority = CacheItemPriority.Normal
                 };
                 memoryCache.Set(cacheKey, brandList, cacheExpOptions);
@@ -511,7 +616,7 @@ namespace BuyWithOffer
 
                 var cacheExpOptions = new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpiration = DateTime.Now.AddDays(30),
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
                     Priority = CacheItemPriority.Normal
                 };
                 memoryCache.Set(cacheKey, brandList, cacheExpOptions);
@@ -520,28 +625,113 @@ namespace BuyWithOffer
             return casheList.Where(x => x.UsageStatusId == UsageStatusId).FirstOrDefault().UsageStatusName;
         }
 
-        private byte[] GetImage(int ImageId)
-        {
-            return context.Photos.Where(x => x.Id == ImageId).FirstOrDefaultAsync().Result.Image;
-        }
-
+        // from memory cache
         private int GetCategoryId(string CategoryName)
         {
-            return context.Categories.Where(x => x.CategoryName == CategoryName).FirstAsync().Result.CategoryId;
-        }
-        private int GetColorId(string ColorName)
-        {
-            return context.Colors.Where(x => x.ColorName == ColorName).FirstOrDefaultAsync().Result.ColorId;
-        }
-        private int GetBrandId(string BrandName)
-        {
-            return context.Brands.Where(x => x.BrandName == BrandName).FirstOrDefaultAsync().Result.BrandId;
-        }
-        private int GetUsageStatusId(string UsageStatusName)
-        {
-            return context.UsageStatus.Where(x => x.UsageStatusName == UsageStatusName).FirstOrDefaultAsync().Result.UsageStatusId;
+            if (!memoryCache.TryGetValue(cacheKey, out List<Category> casheList))
+            {
+                List<Category> categoryList = new List<Category>();
+                var categories = context.Categories.ToListAsync().Result;
+                foreach (var category in categories)
+                {
+                    categoryList.Add(category);
+                }
+
+                var cacheExpOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
+                    Priority = CacheItemPriority.Normal
+                };
+                memoryCache.Set(cacheKey, categoryList, cacheExpOptions);
+                return categoryList.Where(x => x.CategoryName == CategoryName).FirstOrDefault().CategoryId;
+            }
+            return casheList.Where(x => x.CategoryName == CategoryName).FirstOrDefault().CategoryId;
         }
 
+        // from memory cache
+        private int GetColorId(string ColorName)
+        {
+            if (!memoryCache.TryGetValue(cacheKey, out List<Color> casheList))
+            {
+                List<Color> colorList = new List<Color>();
+                var colors = context.Colors.ToListAsync().Result;
+                foreach (var color in colors)
+                {
+                    colorList.Add(color);
+                }
+
+                var cacheExpOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
+                    Priority = CacheItemPriority.Normal
+                };
+                memoryCache.Set(cacheKey, colorList, cacheExpOptions);
+                return colorList.Where(x => x.ColorName == ColorName).FirstOrDefault().ColorId;
+            }
+            return casheList.Where(x => x.ColorName == ColorName).FirstOrDefault().ColorId;
+        }
+
+        // from memory cache
+        private int GetBrandId(string BrandName)
+        {
+            if (!memoryCache.TryGetValue(cacheKey, out List<Brand> casheList))
+            {
+                List<Brand> brandList = new List<Brand>();
+                var brands = context.Brands.ToListAsync().Result;
+                foreach (var brand in brands)
+                {
+                    brandList.Add(brand);
+                }
+
+                var cacheExpOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
+                    Priority = CacheItemPriority.Normal
+                };
+                memoryCache.Set(cacheKey, brandList, cacheExpOptions);
+                return brandList.Where(x => x.BrandName == BrandName).FirstOrDefault().BrandId;
+            }
+            return casheList.Where(x => x.BrandName == BrandName).FirstOrDefault().BrandId;
+        }
+
+        // from memory cache
+        private int GetUsageStatusId(string UsageStatusName)
+        {
+            if (!memoryCache.TryGetValue(cacheKey, out List<UsageStatus> casheList))
+            {
+                List<UsageStatus> brandList = new List<UsageStatus>();
+                var UsageStatuses = context.UsageStatus.ToListAsync().Result;
+                foreach (var usageStatus in UsageStatuses)
+                {
+                    brandList.Add(usageStatus);
+                }
+
+                var cacheExpOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTime.Now.AddDays(1),
+                    Priority = CacheItemPriority.Normal
+                };
+                memoryCache.Set(cacheKey, brandList, cacheExpOptions);
+                return brandList.Where(x => x.UsageStatusName == UsageStatusName).FirstOrDefault().UsageStatusId;
+            }
+            return casheList.Where(x => x.UsageStatusName == UsageStatusName).FirstOrDefault().UsageStatusId;
+        }
+
+        // from database
+        private byte[] GetImage(Product product)
+        {
+            if(product.hasPhoto == true)
+            {
+                return context.Photos.Where(x => x.Id == product.PhotoId).FirstOrDefaultAsync().Result.Image;
+            }
+            else
+            {
+                return new byte[1];
+            }
+            
+        }
+
+        // frontend deki dropdown actionlari icin, sonrasinda frontend yapilirsa diye.
         public async Task<ApplicationResponse<List<Color>>> GetColors()
         {
             try
@@ -593,89 +783,6 @@ namespace BuyWithOffer
                 return new ApplicationResponse<List<UsageStatus>> { ErrorMessage = e.Message, Succeeded = false };
             }
         }
-
-        public async Task<ApplicationResponse> AddImage(byte[] image, int productId, User applicationUser)
-        {
-            try
-            {
-                // kullanici profil fotografi olusturulur.
-                Photo newImage = new Photo();
-                newImage.CreatedBy = applicationUser.UserName;
-                newImage.CreatedById = applicationUser.Id;
-                newImage.CreatedDate = DateTime.UtcNow;
-                newImage.ProductId = productId;
-                newImage.Image = image;
-                await context.Photos.AddAsync(newImage);
-                await context.SaveChangesAsync();
-              
-                Product getExistProduct = await context.Products.FindAsync(productId);
-                if (getExistProduct == null)
-                {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Post Found !" };
-                }
-
-                // olusturulan urun resminin id si urun tablosuna guncellenir. hasPhoto degeri true olarak guncellenir.
-                Photo userPhoto = await context.Photos.Where(x => x.ProductId == productId).FirstAsync();
-                getExistProduct.PhotoId = userPhoto.Id;
-                getExistProduct.hasPhoto = true;
-                getExistProduct.ModifiedBy = applicationUser.UserName;
-                getExistProduct.ModifiedById = applicationUser.Id;
-                getExistProduct.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistProduct);
-
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse { Succeeded = true };
-            }
-            catch (Exception ex)
-            {
-                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
-            }
-        }
-        public async Task<ApplicationResponse> DeleteImage(int imageId, User applicationUser)
-        {
-            try
-            {
-                // silinecek olan kullanici profil fotografi database den alinir.
-                Photo willDeleteImage = context.Photos.Where(x => x.Id == imageId).FirstOrDefault();
-                if (willDeleteImage == null)
-                {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Image Found !" };
-                }
-                context.Photos.Remove(willDeleteImage);
-                await context.SaveChangesAsync();
-
-                Product getExistPost = await context.Products.FindAsync(willDeleteImage.ProductId);
-                if (getExistPost == null)
-                {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Product Found Related with Image!" };
-                }
-
-                // silinen urun resminin product tablosundaki karsiligi guncellenir.
-                getExistPost.PhotoId = 0;
-                getExistPost.ModifiedBy = applicationUser.UserName;
-                getExistPost.ModifiedById = applicationUser.Id;
-                getExistPost.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistPost);
-
-                await context.SaveChangesAsync();
-
-                return new ApplicationResponse { Succeeded = true };
-            }
-            catch (Exception ex)
-            {
-                return new ApplicationResponse { Succeeded = false, ErrorMessage = ex.Message };
-            }
-        }
-
-        //form dosyasini byte[] e donusturur.
-        public async Task<byte[]> GetBytes(IFormFile formFile)
-        {
-            await using var memoryStream = new MemoryStream();
-            await formFile.CopyToAsync(memoryStream);
-            return memoryStream.ToArray();
-        }
+        
     }
 }

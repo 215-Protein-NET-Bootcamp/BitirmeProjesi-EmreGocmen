@@ -19,9 +19,9 @@ namespace BuyWithOffer
             this.userManager = userManager;
         }
 
-        [HttpGet]
+        [HttpGet("GetAll")]
         [Authorize]
-        public async Task<ApplicationResponse<List<CategoryDto>>> Get()
+        public async Task<ApplicationResponse<List<CategoryDto>>> GetAll()
         {
             Log.Information($"{User.Identity?.Name}: get all categories");
             var user = await GetCurrentUserAsync();
@@ -30,30 +30,25 @@ namespace BuyWithOffer
 
         [HttpGet("GetById")]
         [Authorize]
-        public async Task<ActionResult<ApplicationResponse<CategoryDto>>> GetById(int id)
+        public async Task<ApplicationResponse<CategoryDto>> GetById(int id)
         {
             Log.Information($"{User.Identity?.Name}: get a category by id with id is {id}");
             var user = await GetCurrentUserAsync();
             var result = await categoryService.GetById(id, user);
-            if (result.Succeeded)
-                return result;
-            return NotFound(result);
+            return result;
         }
 
-        [HttpPost]
+        [HttpPost("Create")]
         [Authorize]
-        public async Task<ActionResult<ApplicationResponse>> Post([FromBody] CreateCategoryDto input)
+        public async Task<ApplicationResponse> Create([FromBody] CreateCategoryDto input)
         {
             Log.Information($"{User.Identity?.Name}: create a category {input.Category}");
             var user = await GetCurrentUserAsync();
             var result = await categoryService.Create(input, user);
-            if (result.Succeeded)
-                return result;
-
-            return NotFound(result);
+            return result;
         }
 
-        [HttpPut]
+        [HttpPut("Update")]
         [Authorize]
         public async Task<ApplicationResponse> Update([FromBody] UpdateCategoryDto request)
         {
