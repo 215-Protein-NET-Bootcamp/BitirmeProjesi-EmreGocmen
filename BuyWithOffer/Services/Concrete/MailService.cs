@@ -118,12 +118,12 @@ namespace BuyWithOffer
         {
             MailMessage message = new MailMessage();
             message.Subject = mail.Subject;
-            message.From = new MailAddress(mail.From, "BuyWithOffer");
+            message.From = new MailAddress("yeniepostabwo@outlook.com", "BuyWithOffer");
             message.To.Add(new MailAddress(mail.To));
             message.Body = mail.Body;
 
             SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587);
-            NetworkCredential AccountInfo = new NetworkCredential("buywithoffer@outlook.com", "Asd123.:.");
+            NetworkCredential AccountInfo = new NetworkCredential("yeniepostabwo@outlook.com", "Asd123.:.");
             smtp.EnableSsl = true;
             smtp.UseDefaultCredentials = false;
             smtp.Credentials = AccountInfo;
