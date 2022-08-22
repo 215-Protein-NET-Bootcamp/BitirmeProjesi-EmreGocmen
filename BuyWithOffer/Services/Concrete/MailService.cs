@@ -25,7 +25,6 @@ namespace BuyWithOffer
             {
                 Email mail = new Email();
                 mail.Subject = "Hosgeldiniz";
-                mail.From = "buywithoffer@outlook.com";
                 mail.To = emailAddress;
                 mail.Body = "Hesabiniz olusturuldu. Keyifle tekliflerinizi yapiniz!";
                 mail.Status = "Created";
@@ -48,7 +47,6 @@ namespace BuyWithOffer
             {
                 Email mail = new Email();
                 mail.Subject = "Hesap Bloke";
-                mail.From = "buywithoffer@outlook.com";
                 mail.To = emailAddress;
                 mail.Body = "Parolaniz 3 kez yanlis girildigi icin hesabiniz bloke olmustur. 5 dakika sonra tekrar deneyebilirsiniz.";
                 mail.Status = "Created";
@@ -71,7 +69,6 @@ namespace BuyWithOffer
             {
                 Email mail = new Email();
                 mail.Subject = "Urunuz satilmistir";
-                mail.From = "buywithoffer@outlook.com";
                 mail.To = emailAddress;
                 mail.Body = "Urununuz basariyla satilmistir, yeni teklifler almak ve gondermek icin sitemize bekleriz.";
                 mail.Status = "Created";
@@ -94,7 +91,6 @@ namespace BuyWithOffer
             {
                 Email mail = new Email();
                 mail.Subject = "Teklif verdiginiz urun satilmistir";
-                mail.From = "buywithoffer@outlook.com";
                 mail.To = emailAddress;
                 mail.Body = "Maalesef teklif verdiginiz urun satilmistir," +
                     " yeni teklifler almak ve gondermek icin sitemize bekleriz.";
