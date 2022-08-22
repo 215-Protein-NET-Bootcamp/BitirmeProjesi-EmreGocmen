@@ -1,13 +1,13 @@
 1. Programi ayaga kaldirmak icin ilk adim Sql Server da yeni bir Database olusturmak.
 Ben sql server kullandim, database adi da BuyWithOffer, mumkunse bu isimle olusturulabilir. Farkli bir isimle olusuturulmasi durumunda 
-SqlScripts.txt dosyasinda use database scripti guncellenmelidir.
+SqlScripts.txt dosyasinda use [database] scripti guncellenmelidir.
 
 2. adim nuget-package manager console dan Update-Database komutunu kullanip tablolari database e kopyalamak.
 
 3. adimda mock data kullanmak istenirse SqlScripts.txt dosyasi icindeki scriptler kullanilabilir. Ozellikle color brand ve usage status icin 
 kullanilmali, kategory category controllerdan, urunler ve teklifler de yine controller lar araciligi ile olusturulabilir.
 
-4.Adim register veya login olmak, scriptlerde 3 tane user create scripti var, kullanilmak istenirse user sifreleri ayni "Asd123.:."
+4.Adim register veya login olmak, scriptlerde 3 tane user insert scripti var, kullanilmak istenirse user sifreleri ayni "Asd123.:."
 Sisteme giris yaptiktan sonra metodlar kullanima acik olucaktir. Registerda microsoft identity kullandigim icin register i takiben sisteme 
 otomatik olarak giris yapmis oluyoruz. Token bearer olarak header a eklemeye gerek kalmiyor.
 
