@@ -18,7 +18,7 @@ namespace BuyWithOffer
 
         [HttpGet("GetAll")]
         [Authorize]
-        public async Task<ApplicationResponse<List<Sale>>> GetAll([FromBody] CreateCategoryDto input)
+        public async Task<ApplicationResponse<List<Sale>>> GetAll()
         {
             return await productService.GetAllSales();
         }

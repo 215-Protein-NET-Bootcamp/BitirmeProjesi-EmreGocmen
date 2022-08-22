@@ -451,47 +451,53 @@ namespace BuyWithOffer
             try
             {
                 Product getExistProduct = await context.Products.FindAsync(productId);
-
-                if (getExistProduct == null)
+                if(getExistProduct.isSold == false)
                 {
-                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Post Found !" };
+                    if (getExistProduct == null)
+                    {
+                        return new ApplicationResponse { Succeeded = false, ErrorMessage = "No Post Found !" };
+                    }
+
+                    getExistProduct.isSold = true;
+                    getExistProduct.isOfferable = false;
+                    getExistProduct.ModifiedBy = applicationUser.UserName;
+                    getExistProduct.ModifiedById = applicationUser.Id;
+                    getExistProduct.ModifiedDate = DateTime.UtcNow;
+
+                    context.Update(getExistProduct);
+
+                    Sale newSale = new Sale();
+                    newSale.CreatedBy = applicationUser.UserName;
+                    newSale.CreatedById = applicationUser.Id;
+                    newSale.CreatedDate = DateTime.UtcNow;
+                    newSale.Amount = getExistProduct.Price;
+                    newSale.ProductId = getExistProduct.ProductId;
+
+                    await context.Sales.AddAsync(newSale);
+
+                    await context.SaveChangesAsync();
+
+                    List<Offer> offerList = context.Offers.Where(x => x.ProductId == productId).ToList();
+
+                    // urun satin alindiginda o urune yapilmis teklifler iptal edilir.
+                    // cancel offer methodu icinde teklif vermis ve teklifi iptal olmus kullanicilar mail yolu ile bilgilendirilir.
+                    foreach (Offer offer in offerList)
+                    {
+                        await CancelOffer(offer.OfferId, applicationUser);
+                    }
+
+                    //urun sahibine urununuz satildi maili
+                    var ownerOfProduct = getExistProduct.CreatedBy;
+                    var tempMail = mailService.createSaleMail(ownerOfProduct).Result;
+                    Email toSendMail = tempMail.Result;
+                    await mailService.sendMail(toSendMail);
+
+                    return new ApplicationResponse { Succeeded = true };
                 }
-
-                getExistProduct.isSold = true;
-                getExistProduct.isOfferable = false;
-                getExistProduct.ModifiedBy = applicationUser.UserName;
-                getExistProduct.ModifiedById = applicationUser.Id;
-                getExistProduct.ModifiedDate = DateTime.UtcNow;
-
-                context.Update(getExistProduct);
-
-                Sale newSale = new Sale();
-                newSale.CreatedBy = applicationUser.UserName;
-                newSale.CreatedById = applicationUser.Id;
-                newSale.CreatedDate = DateTime.UtcNow;
-                newSale.Amount = getExistProduct.Price;
-                newSale.ProductId = getExistProduct.ProductId;
-
-                await context.Sales.AddAsync(newSale);
-
-                await context.SaveChangesAsync();
-
-                List<Offer> offerList = context.Offers.Where(x => x.ProductId == productId).ToList();
-
-                // urun satin alindiginda o urune yapilmis teklifler iptal edilir.
-                // cancel offer methodu icinde teklif vermis ve teklifi iptal olmus kullanicilar mail yolu ile bilgilendirilir.
-                foreach (Offer offer in offerList)
+                else
                 {
-                    await CancelOffer(offer.OfferId, applicationUser);
+                    return new ApplicationResponse { Succeeded = false, ErrorMessage = "Urun satisa acik degil" };
                 }
-
-                //urun sahibine urununuz satildi maili
-                var ownerOfProduct = getExistProduct.CreatedBy;
-                var tempMail = mailService.createSaleMail(ownerOfProduct).Result;
-                Email toSendMail = tempMail.Result;
-                await mailService.sendMail(toSendMail);
-
-                return new ApplicationResponse { Succeeded = true };
             }
             catch (Exception ex)
             {

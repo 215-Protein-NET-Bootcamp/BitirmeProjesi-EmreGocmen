@@ -25,7 +25,7 @@ namespace BuyWithOffer
 
         [HttpGet("GetAll")]
         [Authorize]
-        public async Task<ApplicationResponse<List<ProductDto>>> Get()
+        public async Task<ApplicationResponse<List<ProductDto>>> GetAll()
         {
             Log.Information($"{User.Identity?.Name}: get all products");
             var user = await GetCurrentUserAsync();
@@ -63,7 +63,7 @@ namespace BuyWithOffer
             return NotFound(result);
         }
 
-        [HttpGet("GetByUser")]
+        [HttpGet("GetByActiveUser")]
         [Authorize]
         public async Task<ActionResult<ApplicationResponse<List<ProductDto>>>> GetByActiveUser()
         {
@@ -126,32 +126,6 @@ namespace BuyWithOffer
             return result;
         }
 
-        private Task<User> GetCurrentUserAsync()
-        {
-            return userManager.GetUserAsync(HttpContext.User);
-        }
-
-        [HttpGet("GetColors")]
-        [Authorize]
-        public Task<ApplicationResponse<List<Color>>> GetColors()
-        {
-            return productService.GetColors();
-        }
-
-        [HttpGet("GetBrands")]
-        [Authorize]
-        public Task<ApplicationResponse<List<Brand>>> GetBrands()
-        {
-            return productService.GetBrands();
-        }
-
-        [HttpGet("GetUsageStatus")]
-        [Authorize]
-        public Task<ApplicationResponse<List<UsageStatus>>> GetUsageStatus()
-        {
-            return productService.GetUsageStatus();
-        }
-
         [HttpPost("AddImage")]
         [Authorize]
         public async Task<ApplicationResponse> AddImage([FromForm] FileUpload file, int productId)
@@ -169,7 +143,6 @@ namespace BuyWithOffer
             return result;
         }
 
-
         [HttpPut("DeleteImage")]
         [Authorize]
         public async Task<ApplicationResponse> DeleteImage(int productId)
@@ -179,6 +152,32 @@ namespace BuyWithOffer
             var result = await productService.DeleteImage(productId, user);
             return result;
         }
-        
+
+
+        // Bu 3 metod frontend deki dropdown actionlari icin, projenin ilerideki asamalarinda
+        // frontend uzerinde dropdown area yapilirsa kullanilabilir.
+        [HttpGet("GetColors")]
+        [Authorize]
+        public Task<ApplicationResponse<List<Color>>> GetColors()
+        {
+            return productService.GetColors();
+        }
+        [HttpGet("GetBrands")]
+        [Authorize]
+        public Task<ApplicationResponse<List<Brand>>> GetBrands()
+        {
+            return productService.GetBrands();
+        }
+        [HttpGet("GetUsageStatus")]
+        [Authorize]
+        public Task<ApplicationResponse<List<UsageStatus>>> GetUsageStatus()
+        {
+            return productService.GetUsageStatus();
+        }
+
+        private Task<User> GetCurrentUserAsync()
+        {
+            return userManager.GetUserAsync(HttpContext.User);
+        }
     }
 }

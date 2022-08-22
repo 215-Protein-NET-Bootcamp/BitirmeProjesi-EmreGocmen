@@ -39,14 +39,12 @@ namespace BuyWithOffer
 
         [HttpGet("GetById")]
         [Authorize]
-        public async Task<ActionResult<ApplicationResponse<OfferDto>>> GetById(int id)
+        public async Task<ApplicationResponse<OfferDto>> GetById(int id)
         {
             Log.Information($"{User.Identity?.Name}: get an offer by id with id is {id}");
             var user = await GetCurrentUserAsync();
             var result = await offerService.GetById(id, user);
-            if (result.Succeeded)
-                return result;
-            return NotFound(result);
+            return result;
         }
 
         [HttpGet("GetSendedOffers")]
@@ -69,15 +67,12 @@ namespace BuyWithOffer
 
         [HttpPost("MakeOffer")]
         [Authorize]
-        public async Task<ActionResult<ApplicationResponse>> MakeOffer([FromBody] CreateOfferDto input)
+        public async Task<ApplicationResponse> MakeOffer([FromBody] CreateOfferDto input)
         {
             Log.Information($"{User.Identity?.Name}: to make offer creates new offer for product which is {input.ProductId}");
             var user = await GetCurrentUserAsync();
             var result = await offerService.MakeOffer(input, user);
-            if (result.Succeeded)
-                return result;
-
-            return NotFound(result);
+            return result;
         }
 
         [HttpPut("ConfirmOffer")]

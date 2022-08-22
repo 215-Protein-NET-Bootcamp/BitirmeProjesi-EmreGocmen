@@ -128,6 +128,7 @@ namespace BuyWithOffer
             return BadRequest(ModelState);
         }
 
+
         private Task<User> GetCurrentUserAsync()
         {
             return userManager.GetUserAsync(HttpContext.User);

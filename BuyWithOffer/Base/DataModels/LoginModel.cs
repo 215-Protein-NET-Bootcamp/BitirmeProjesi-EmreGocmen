@@ -5,7 +5,7 @@ namespace BuyWithOffer
     public class LoginModel
     {
         [Required]
-        [StringLength(100, ErrorMessage = "{0} field max {1}, at least {2} chars", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "{0} field max {1}, at least {2} chars", MinimumLength = 8)]
         [EmailAddress]
         public string Email { get; set; }
 

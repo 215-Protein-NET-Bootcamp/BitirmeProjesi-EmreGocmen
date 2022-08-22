@@ -40,6 +40,13 @@ namespace BuyWithOffer
                 productDto.Price = product.Price;
                 productDto.isOfferable = product.isOfferable;
                 productDto.isSold = product.isSold;
+
+                productDto.CreatedBy = product.CreatedBy;
+                productDto.CreatedById = product.CreatedById;
+                productDto.CreatedDate = product.CreatedDate;
+                productDto.ModifiedBy = product.ModifiedBy;
+                productDto.ModifiedById = product.ModifiedById;
+                productDto.ModifiedDate = product.ModifiedDate;
                 return new ApplicationResponse<ProductDto>
                 {
                     Succeeded = true,
@@ -731,7 +738,7 @@ namespace BuyWithOffer
             
         }
 
-        // frontend deki dropdown actionlari icin, sonrasinda frontend yapilirsa diye.
+        // frontend deki dropdown actionlari icin, sonrasinda frontend uzerinde yapilirsa kullanilabilir.
         public async Task<ApplicationResponse<List<Color>>> GetColors()
         {
             try

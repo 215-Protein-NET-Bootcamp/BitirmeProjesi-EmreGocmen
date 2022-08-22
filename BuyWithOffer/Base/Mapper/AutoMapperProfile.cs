@@ -17,6 +17,8 @@ namespace BuyWithOffer
                 .ForMember(x => x.ModifiedById, opt => opt.Ignore())
                 .ForMember(x => x.CreatedDate, opt => opt.MapFrom(s => DateTime.UtcNow))
                 .ForMember(x => x.ModifiedDate, opt => opt.Ignore());
+
+            // Diger Servislerde AutoMapper kullanilmamistir.
         }
     }
 }

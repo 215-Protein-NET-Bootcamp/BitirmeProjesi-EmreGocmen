@@ -17,7 +17,7 @@ namespace BuyWithOffer
 
         [HttpPut("SendFailedMails")]
         [Authorize]
-        public async Task<ApplicationResponse> SendFailedMails([FromBody] CreateCategoryDto input)
+        public async Task<ApplicationResponse> SendFailedMails()
         {
             return await mailService.sendFailedMails();
         }
