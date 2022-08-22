@@ -112,6 +112,8 @@ namespace BuyWithOffer
             }
         }
 
+
+        // olusturulan mailleri gondermek icin bu metod cagirilir.
         public async Task<ApplicationResponse> sendMail(Email mail)
         {
             MailMessage message = new MailMessage();
@@ -150,7 +152,6 @@ namespace BuyWithOffer
             }
         }
 
-
         // 5  defa denenip status u failed olarak guncellenen mailleri tekrar gondermeyi dener.
         public async Task<ApplicationResponse> sendFailedMails()
         {
@@ -160,9 +161,9 @@ namespace BuyWithOffer
             {
                 foreach(Email mail in failedMails)
                 {
-                    // failed mailler tekrar gonderilmeden once tryCount degerleri sifirlanir.
+                    // failed mailler tekrar gonderilmeden once tryCount degerleri sifirlanir(default olarak 1).
                     // bu sayede 5 kere daha denenir.
-                    mail.tryCount = 0;
+                    mail.tryCount = 1;
                     context.Update(mail);
                     await UnitOfWork.CompleteAsync();
                     await sendMail(mail);
