@@ -336,17 +336,6 @@ namespace BuyWithOffer
                     context.Update(getExistOffer);
                     await context.SaveChangesAsync();
 
-                    //teklifi iptal eden kullanici teklifi yapan kullaniciyla ayni mi kontrol edilir
-                    //degilse teklifi olusturan kullanici bilgilendirilir.
-                    if (applicationUser.UserName != getExistOffer.CreatedBy)
-                    {
-                        Product getExistProduct = await context.Products.FindAsync(getExistOffer.ProductId);
-                        var toEmail = getExistProduct.CreatedBy;
-
-                        var tempMail = mailService.createOfferSoldMail(toEmail).Result;
-                        Email toSendMail = tempMail.Result;
-                        await mailService.sendMail(toSendMail);
-                    }
 
                     return new ApplicationResponse
                     {
@@ -355,6 +344,13 @@ namespace BuyWithOffer
                 }
                 else
                 {
+                    //teklifi iptal eden kullanici teklifi yapan kullaniciyla ayni mi kontrol edilir
+                    //degilse teklifi olusturan kullanici bilgilendirilir.
+                    var toEmail = getExistOffer.CreatedBy;
+                    var tempMail = mailService.createOfferSoldMail(toEmail).Result;
+                    Email toSendMail = tempMail.Result;
+                    await mailService.sendMail(toSendMail);
+                    
                     return new ApplicationResponse
                     {
                         Succeeded = false,
